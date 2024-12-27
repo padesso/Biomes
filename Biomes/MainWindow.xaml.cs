@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using Biomes;
-using Biomes.Models;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
-using SkiaSharp.Views.WPF;
+using WFCLib.Models;
 
 namespace BiomeVisualizer
 {
@@ -125,28 +121,11 @@ namespace BiomeVisualizer
             {
                 try
                 {
-                    return GenerateBiomeMapWFC(biomes, size);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    Debug.WriteLine($"Restarting due to error: {ex.Message}");
-                }
-            }
-        }
-
-        static Tile[] GenerateBiomeMapWFC(List<Biome> biomes, int size)
-        {
-            while (true)
-            {
-                try
-                {
                     return RunWFC(biomes, size);
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Debug.WriteLine($"WFC failed: {ex.Message}");
-                    // Optional: Print current state for debugging
-                    //LogCurrentState(size, null, null);
+                    Debug.WriteLine($"Restarting due to error: {ex.Message}");
                 }
             }
         }
