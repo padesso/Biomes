@@ -17,7 +17,7 @@ namespace BiomeVisualizer
 
         private Tile[] biomeMap;
         private int tileSize = 15;
-        private static readonly Random rand = new Random(42); // Seed for deterministic behavior
+        private static readonly Random rand = new Random(); // Seed for deterministic behavior
         private int mapSize;
 
         public MainWindow()
@@ -28,17 +28,30 @@ namespace BiomeVisualizer
 
             // Generate the biome map
             mapSize = 25;
-            var biomes = LoadBiomesFromDatabase("biomes.db"); // Load from database
-            ValidateAndFixAdjacencyRules(biomes);
-            biomeMap = GenerateBiomeMapWFCWithFallback(biomes, mapSize);
+            GenerateBiomeMap();
 
             // Set the legend items
+            var biomes = LoadBiomesFromDatabase(DatabasePath);
             var uniqueBiomes = biomes.GroupBy(b => b.Name).Select(g => g.First()).ToList();
             LegendItemsControl.ItemsSource = uniqueBiomes.Select(b => new
             {
                 Name = b.Name,
                 Color = (SolidColorBrush)new BrushConverter().ConvertFromString(b.Color)
             }).ToList();
+        }
+
+        private void GenerateBiomeMap()
+        {
+            var biomes = LoadBiomesFromDatabase(DatabasePath); // Load from database
+            ValidateAndFixAdjacencyRules(biomes);
+            biomeMap = GenerateBiomeMapWFCWithFallback(biomes, mapSize);
+            MapCanvas.InvalidateVisual(); // Redraw the map
+        }
+
+        private void RegenerateMapButton_Click(object sender, RoutedEventArgs e)
+        {
+            biomeMap = new Tile[mapSize * mapSize]; // Reset the biome map
+            GenerateBiomeMap();
         }
 
         private void MapCanvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
@@ -56,7 +69,7 @@ namespace BiomeVisualizer
                     var rect = new SKRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize);
                     var paint = new SKPaint
                     {
-                        Color = SKColor.Parse(tile.Biome.Color),
+                        Color = tile != null ? SKColor.Parse(tile.Biome.Color) : SKColors.White,
                         Style = SKPaintStyle.Fill
                     };
                     canvas.DrawRect(rect, paint);
@@ -71,7 +84,7 @@ namespace BiomeVisualizer
                     canvas.DrawRect(rect, gridPaint);
 
                     // Draw trading post
-                    if (tile.Biome.TradingPost != null &&
+                    if (tile?.Biome.TradingPost != null &&
                         tile.X == tile.Biome.TradingPost.X &&
                         tile.Y == tile.Biome.TradingPost.Y)
                     {
@@ -380,10 +393,10 @@ namespace BiomeVisualizer
         {
             HashSet<string> commodities = new HashSet<string>();
             string query = @"
-                                        SELECT Commodities.Name 
-                                        FROM BiomeCommodities
-                                        INNER JOIN Commodities ON BiomeCommodities.CommodityID = Commodities.CommodityID
-                                        WHERE BiomeCommodities.BiomeID = @BiomeID";
+                                                SELECT Commodities.Name 
+                                                FROM BiomeCommodities
+                                                INNER JOIN Commodities ON BiomeCommodities.CommodityID = Commodities.CommodityID
+                                                WHERE BiomeCommodities.BiomeID = @BiomeID";
             using (var cmd = new SQLiteCommand(query, connection))
             {
                 cmd.Parameters.AddWithValue("@BiomeID", biomeID);

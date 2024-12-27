@@ -4,12 +4,23 @@
         xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
         Title="Biome Visualizer" Height="800" Width="1000">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="200" />
         </Grid.ColumnDefinitions>
-        <skia:SKElement x:Name="MapCanvas" PaintSurface="MapCanvas_PaintSurface" Grid.Column="0" />
-        <StackPanel Grid.Column="1" Margin="10">
+        
+        <!-- Regenerate Button -->
+        <Button Content="Regenerate Map" Click="RegenerateMapButton_Click" Grid.Row="0" Grid.ColumnSpan="2" Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+        <!-- Map Canvas -->
+        <skia:SKElement x:Name="MapCanvas" PaintSurface="MapCanvas_PaintSurface" Grid.Row="1" Grid.Column="0" />
+
+        <!-- Legend -->
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10">
             <TextBlock Text="Legend" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
             <ItemsControl x:Name="LegendItemsControl">
                 <ItemsControl.ItemTemplate>
