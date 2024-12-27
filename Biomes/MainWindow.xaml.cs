@@ -16,7 +16,7 @@ namespace BiomeVisualizer
         private const string DatabasePath = "biomes.db";
 
         private Tile[] biomeMap;
-        private int tileSize = 10;
+        private int tileSize = 15;
         private static readonly Random rand = new Random(42); // Seed for deterministic behavior
         private int mapSize;
 
@@ -27,7 +27,7 @@ namespace BiomeVisualizer
             DatabaseInitializer.InitializeDatabase(DatabasePath);
 
             // Generate the biome map
-            mapSize = 50;
+            mapSize = 25;
             var biomes = LoadBiomesFromDatabase("biomes.db"); // Load from database
             ValidateAndFixAdjacencyRules(biomes);
             biomeMap = GenerateBiomeMapWFCWithFallback(biomes, mapSize);

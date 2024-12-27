@@ -126,8 +126,8 @@ public static class DatabaseInitializer
         InsertOrUpdateBiomeAdjacency(connection, 1, 2, false); // Forest <-> Desert
         InsertOrUpdateBiomeAdjacency(connection, 1, 3, true); // Forest <-> Mountain
         InsertOrUpdateBiomeAdjacency(connection, 1, 4, true); // Forest <-> Swamp
-        InsertOrUpdateBiomeAdjacency(connection, 1, 5, true); // Forest <-> Tundra
-        InsertOrUpdateBiomeAdjacency(connection, 1, 6, true); // Forest <-> Water
+        InsertOrUpdateBiomeAdjacency(connection, 1, 5, false); // Forest <-> Tundra
+        InsertOrUpdateBiomeAdjacency(connection, 1, 6, false); // Forest <-> Water
 
         InsertOrUpdateBiomeAdjacency(connection, 2, 3, true); // Desert <-> Mountain
         InsertOrUpdateBiomeAdjacency(connection, 2, 4, false); // Desert <-> Swamp
