@@ -16,8 +16,8 @@ namespace BiomeVisualizer
         private const string DatabasePath = "biomes.db";
 
         private Tile[] biomeMap;
-        private int tileSize = 50;
-        private static readonly Random rand = new Random(); // Seed for deterministic behavior
+        private int tileSize = 10;
+        private static readonly Random rand = new Random(42); // Seed for deterministic behavior
         private int mapSize;
 
         public MainWindow()
@@ -27,7 +27,7 @@ namespace BiomeVisualizer
             DatabaseInitializer.InitializeDatabase(DatabasePath);
 
             // Generate the biome map
-            mapSize = 15;
+            mapSize = 50;
             var biomes = LoadBiomesFromDatabase("biomes.db"); // Load from database
             ValidateAndFixAdjacencyRules(biomes);
             biomeMap = GenerateBiomeMapWFCWithFallback(biomes, mapSize);
@@ -120,49 +120,6 @@ namespace BiomeVisualizer
             }
         }
 
-        static void LogCurrentState(int size, Tile[] map, List<Biome>[] possibilities)
-        {
-            Debug.WriteLine("Logging current state of the map...");
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    var tile = map[y * size + x];
-                    if (tile != null)
-                    {
-                        Debug.Write($"[{tile.Biome.Name}] ");
-                    }
-                    else
-                    {
-                        Debug.Write("[ ] ");
-                    }
-                }
-                Debug.WriteLine("");
-            }
-
-            if (possibilities != null)
-            {
-                Debug.WriteLine("Unresolved possibilities:");
-                for (int y = 0; y < size; y++)
-                {
-                    for (int x = 0; x < size; x++)
-                    {
-                        var tile = map[y * size + x];
-                        if (tile == null)
-                        {
-                            Debug.Write($"({x}, {y}): ");
-                            foreach (var biome in possibilities[y * size + x])
-                            {
-                                Debug.Write($"{biome.Name} ");
-                            }
-                            Debug.WriteLine("");
-                        }
-                    }
-                }
-            }
-        }
-
         static Tile[] RunWFC(List<Biome> biomes, int size)
         {
             Tile[] map = new Tile[size * size];
@@ -191,7 +148,7 @@ namespace BiomeVisualizer
                 var selectedBiome = possibilities[y * size + x][rand.Next(possibilities[y * size + x].Count)];
                 map[y * size + x] = new Tile { X = x, Y = y, Biome = selectedBiome, Cost = selectedBiome.BaseCost, IsCollapsed = true };
 
-                Debug.WriteLine($"Collapsed tile ({x}, {y}) to biome '{selectedBiome.Name}'.");
+                //Debug.WriteLine($"Collapsed tile ({x}, {y}) to biome '{selectedBiome.Name}'.");
 
                 PropagateConstraints(possibilities, map, biomes, x, y, size);
             }
@@ -241,18 +198,18 @@ namespace BiomeVisualizer
 
                 if (!allowedBiomes.Any())
                 {
-                    Debug.WriteLine($"Tile at ({nx}, {ny}) has no valid possibilities after propagation. Current biome: {currentBiome.Name}");
-                    Debug.WriteLine("Possible candidates before propagation:");
+                    //Debug.WriteLine($"Tile at ({nx}, {ny}) has no valid possibilities after propagation. Current biome: {currentBiome.Name}");
+                    //Debug.WriteLine("Possible candidates before propagation:");
                     foreach (var candidate in possibilities[ny * size + nx])
                     {
-                        Debug.WriteLine($"- {candidate.Name}");
+                        //Debug.WriteLine($"- {candidate.Name}");
                     }
                     throw new InvalidOperationException($"Tile at ({nx}, {ny}) has no valid possibilities after propagation. Check adjacency rules.");
                 }
 
                 if (allowedBiomes.Count < possibilities[ny * size + nx].Count)
                 {
-                    Debug.WriteLine($"Updated tile at ({nx}, {ny}) to have {allowedBiomes.Count} possibilities.");
+                    //Debug.WriteLine($"Updated tile at ({nx}, {ny}) to have {allowedBiomes.Count} possibilities.");
                     possibilities[ny * size + nx] = allowedBiomes;
 
                     // Recursively propagate constraints to neighbors
