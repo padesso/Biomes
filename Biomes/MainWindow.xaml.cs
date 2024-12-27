@@ -29,7 +29,6 @@ namespace BiomeVisualizer
             // Generate the biome map
             mapSize = 15;
             var biomes = LoadBiomesFromDatabase("biomes.db"); // Load from database
-            EnsureCompleteAdjacencyRules(biomes);
             ValidateAndFixAdjacencyRules(biomes);
             biomeMap = GenerateBiomeMapWFCWithFallback(biomes, mapSize);
 
@@ -266,31 +265,26 @@ namespace BiomeVisualizer
         {
             foreach (var biome in biomes)
             {
-                // Ensure each biome has rules for all other biomes, including itself
-                foreach (var neighborBiome in biomes)
+                // Ensure self-adjacency
+                if (!biome.AdjacencyRules.ContainsKey(biome.ID))
                 {
-                    if (!biome.AdjacencyRules.ContainsKey(neighborBiome.ID))
-                    {
-                        // Add default adjacency rule (allow self-adjacency by default)
-                        bool defaultAllowed = biome.ID == neighborBiome.ID; // Self-adjacency is allowed
-                        biome.AdjacencyRules[neighborBiome.ID] = defaultAllowed;
-
-                        Debug.WriteLine($"Added missing adjacency rule: Biome '{biome.Name}' -> Biome '{neighborBiome.Name}' = {defaultAllowed}");
-                    }
+                    biome.AdjacencyRules[biome.ID] = true;
+                    Debug.WriteLine($"Added self-adjacency rule for biome '{biome.Name}'");
                 }
-            }
-        }
 
-        static void EnsureCompleteAdjacencyRules(List<Biome> biomes)
-        {
-            foreach (var biome in biomes)
-            {
+                // Ensure bi-directional adjacency rules
                 foreach (var neighborBiome in biomes)
                 {
-                    if (!biome.AdjacencyRules.ContainsKey(neighborBiome.ID))
+                    if (biome.ID != neighborBiome.ID)
                     {
-                        biome.AdjacencyRules[neighborBiome.ID] = true; // Default to "allowed" for testing
-                        Debug.WriteLine($"Added missing rule: {biome.Name} -> {neighborBiome.Name}");
+                        if (biome.AdjacencyRules.TryGetValue(neighborBiome.ID, out bool allowed))
+                        {
+                            if (!neighborBiome.AdjacencyRules.ContainsKey(biome.ID))
+                            {
+                                neighborBiome.AdjacencyRules[biome.ID] = allowed;
+                                Debug.WriteLine($"Added missing reverse adjacency rule: Biome '{neighborBiome.Name}' -> Biome '{biome.Name}' = {allowed}");
+                            }
+                        }
                     }
                 }
             }
@@ -429,10 +423,10 @@ namespace BiomeVisualizer
         {
             HashSet<string> commodities = new HashSet<string>();
             string query = @"
-                                    SELECT Commodities.Name 
-                                    FROM BiomeCommodities
-                                    INNER JOIN Commodities ON BiomeCommodities.CommodityID = Commodities.CommodityID
-                                    WHERE BiomeCommodities.BiomeID = @BiomeID";
+                                        SELECT Commodities.Name 
+                                        FROM BiomeCommodities
+                                        INNER JOIN Commodities ON BiomeCommodities.CommodityID = Commodities.CommodityID
+                                        WHERE BiomeCommodities.BiomeID = @BiomeID";
             using (var cmd = new SQLiteCommand(query, connection))
             {
                 cmd.Parameters.AddWithValue("@BiomeID", biomeID);
