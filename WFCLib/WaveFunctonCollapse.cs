@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace WFCLib
 {
-    internal class WaveFunctonCollapse
+    public class WaveFunctonCollapse
     {
+        public WaveFunctonCollapse()
+        {
+
+        }
     }
 }
