@@ -2,6 +2,7 @@
 using System.Data.SQLite;
 using System.IO;
 using System.Reflection;
+using WFCLib.Models;
 
 public static class DatabaseInitializer
 {
@@ -316,5 +317,106 @@ public static class DatabaseInitializer
             cmd.Parameters.AddWithValue("@AdjacentBiomeID", adjacentBiomeId);
             return (long)cmd.ExecuteScalar() > 0;
         }
+    }
+
+    public static List<Biome> LoadBiomesFromDatabase(string dbPath)
+    {
+        List<Biome> biomes = new List<Biome>();
+        using (var connection = new SQLiteConnection($"Data Source={dbPath};Version=3;"))
+        {
+            connection.Open();
+            string query = "SELECT * FROM Biomes";
+            var tradingPosts = LoadTradingPosts(connection);
+
+            using (var cmd = new SQLiteCommand(query, connection))
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Biome biome = new Biome
+                    {
+                        ID = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        Color = reader.GetString(2),
+                        BaseCost = reader.GetDouble(3)
+                    };
+
+                    // Load adjacency rules
+                    biome.AdjacencyRules = LoadAdjacencyRules(connection, biome.ID);
+
+                    // Load commodities
+                    biome.Commodities = LoadCommoditiesForBiome(connection, biome.ID);
+
+                    // Assign trading post
+                    biome.TradingPost = tradingPosts.FirstOrDefault(tp => tp.BiomeID == biome.ID);
+
+                    biomes.Add(biome);
+                }
+            }
+        }
+        return biomes;
+    }
+
+    public static List<TradingPost> LoadTradingPosts(SQLiteConnection connection)
+    {
+        var tradingPosts = new List<TradingPost>();
+        string query = "SELECT * FROM TradingPosts";
+        using (var cmd = new SQLiteCommand(query, connection))
+        using (var reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                var tradingPost = new TradingPost
+                {
+                    ID = reader.GetInt32(0),
+                    BiomeID = reader.GetInt32(1),
+                    Name = reader.GetString(2),
+                    X = reader.GetInt32(3),
+                    Y = reader.GetInt32(4)
+                };
+                tradingPosts.Add(tradingPost);
+            }
+        }
+        return tradingPosts;
+    }
+
+    public static Dictionary<int, bool> LoadAdjacencyRules(SQLiteConnection connection, int biomeID)
+    {
+        Dictionary<int, bool> rules = new Dictionary<int, bool>();
+        string query = "SELECT AdjacentBiomeID, Allowed FROM BiomeAdjacency WHERE BiomeID = @BiomeID";
+        using (var cmd = new SQLiteCommand(query, connection))
+        {
+            cmd.Parameters.AddWithValue("@BiomeID", biomeID);
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    rules[reader.GetInt32(0)] = reader.GetBoolean(1);
+                }
+            }
+        }
+        return rules;
+    }
+
+    public static List<string> LoadCommoditiesForBiome(SQLiteConnection connection, int biomeID)
+    {
+        HashSet<string> commodities = new HashSet<string>();
+        string query = @"
+                                                SELECT Commodities.Name 
+                                                FROM BiomeCommodities
+                                                INNER JOIN Commodities ON BiomeCommodities.CommodityID = Commodities.CommodityID
+                                                WHERE BiomeCommodities.BiomeID = @BiomeID";
+        using (var cmd = new SQLiteCommand(query, connection))
+        {
+            cmd.Parameters.AddWithValue("@BiomeID", biomeID);
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    commodities.Add(reader.GetString(0));
+                }
+            }
+        }
+        return commodities.ToList();
     }
 }
