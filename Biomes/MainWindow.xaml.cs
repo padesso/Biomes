@@ -28,7 +28,7 @@ namespace BiomeVisualizer
 
             // Generate the biome map
             mapSize = 25;
-            GenerateBiomeMap();
+            GenerateBiomeMapAsync();
 
             // Set the legend items
             var biomes = LoadBiomesFromDatabase(DatabasePath);
@@ -40,24 +40,41 @@ namespace BiomeVisualizer
             }).ToList();
         }
 
-        private void GenerateBiomeMap()
+        private async void GenerateBiomeMapAsync()
         {
-            var biomes = LoadBiomesFromDatabase(DatabasePath); // Load from database
+            ShowLoadingSpinner();
+            var biomes = await Task.Run(() => LoadBiomesFromDatabase(DatabasePath)); // Load from database
             ValidateAndFixAdjacencyRules(biomes);
-            biomeMap = GenerateBiomeMapWFCWithFallback(biomes, mapSize);
+            biomeMap = await Task.Run(() => GenerateBiomeMapWFCWithFallback(biomes, mapSize));
             MapCanvas.InvalidateVisual(); // Redraw the map
+            HideLoadingSpinner();
         }
 
         private void RegenerateMapButton_Click(object sender, RoutedEventArgs e)
         {
             biomeMap = new Tile[mapSize * mapSize]; // Reset the biome map
-            GenerateBiomeMap();
+            GenerateBiomeMapAsync();
+        }
+
+        private void ShowLoadingSpinner()
+        {
+            LoadingSpinner.Visibility = Visibility.Visible;
+        }
+
+        private void HideLoadingSpinner()
+        {
+            LoadingSpinner.Visibility = Visibility.Collapsed;
         }
 
         private void MapCanvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             var canvas = e.Surface.Canvas;
             canvas.Clear(SKColors.White);
+
+            if (biomeMap == null)
+            {
+                return;
+            }
 
             for (int y = 0; y < mapSize; y++)
             {
@@ -69,7 +86,7 @@ namespace BiomeVisualizer
                     var rect = new SKRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize);
                     var paint = new SKPaint
                     {
-                        Color = tile != null ? SKColor.Parse(tile.Biome.Color) : SKColors.White,
+                        Color = tile?.Biome != null ? SKColor.Parse(tile.Biome.Color) : SKColors.White,
                         Style = SKPaintStyle.Fill
                     };
                     canvas.DrawRect(rect, paint);
@@ -84,7 +101,7 @@ namespace BiomeVisualizer
                     canvas.DrawRect(rect, gridPaint);
 
                     // Draw trading post
-                    if (tile?.Biome.TradingPost != null &&
+                    if (tile?.Biome?.TradingPost != null &&
                         tile.X == tile.Biome.TradingPost.X &&
                         tile.Y == tile.Biome.TradingPost.Y)
                     {
