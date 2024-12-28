@@ -14,7 +14,7 @@ namespace BiomeVisualizer
         private const string DatabasePath = "biomes.db";
 
         private Tile[] biomeMap;
-        private int tileSize = 20;
+        private int tileSize = 10;
         
         private int mapSize;
 
@@ -25,7 +25,7 @@ namespace BiomeVisualizer
             DatabaseInitializer.InitializeDatabase(DatabasePath);
 
             // Generate the biome map
-            mapSize = 25;
+            mapSize = 50;
             GenerateBiomeMapAsync();
 
             // Set the legend items
