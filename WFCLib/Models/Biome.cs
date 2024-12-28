@@ -1,6 +1,6 @@
 ﻿namespace WFCLib.Models
 {
-    public class Biome
+    public struct Biome
     {
         public int ID { get; set; }
         public string Name { get; set; }

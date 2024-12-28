@@ -1,6 +1,6 @@
 ﻿namespace WFCLib.Models
 {
-    public class TradingPost
+    public struct TradingPost
     {
         public int ID { get; set; }
         public int BiomeID { get; set; }

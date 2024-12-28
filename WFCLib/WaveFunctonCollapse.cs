@@ -59,7 +59,7 @@ namespace WFCLib
             {
                 for (int x = 0; x < size; x++)
                 {
-                    if (map[y * size + x] == null || !map[y * size + x].IsCollapsed)
+                    if (map[y * size + x].Equals(default(Tile)) || !map[y * size + x].IsCollapsed)
                     {
                         throw new InvalidOperationException($"Tile at ({x}, {y}) is still null after WFC completion.");
                     }
@@ -80,7 +80,7 @@ namespace WFCLib
             {
                 var (cx, cy) = queue.Dequeue();
                 var currentTile = map[cy * size + cx];
-                if (currentTile == null) continue;
+                if (currentTile.Equals(default(Tile))) continue;
 
                 var currentBiome = currentTile.Biome;
 
@@ -88,7 +88,7 @@ namespace WFCLib
                 {
                     int nx = cx + dx, ny = cy + dy;
 
-                    if (nx < 0 || nx >= cols || ny < 0 || ny >= rows || map[ny * size + nx]?.IsCollapsed == true)
+                    if (nx < 0 || nx >= cols || ny < 0 || ny >= rows || map[ny * size + nx].IsCollapsed)
                         continue;
 
                     var allowedBiomes = new List<Biome>();
@@ -181,7 +181,7 @@ namespace WFCLib
                 for (int x = 0; x < size; x++)
                 {
                     int index = y * size + x;
-                    if (map[index] == null || !map[index].IsCollapsed)
+                    if (map[index].Equals(default(Tile)) || !map[index].IsCollapsed)
                     {
                         if (possibilities[index] != null && possibilities[index].Length > 1)
                         {

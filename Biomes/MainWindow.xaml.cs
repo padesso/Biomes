@@ -84,7 +84,7 @@ namespace BiomeVisualizer
                     var rect = new SKRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize);
                     var paint = new SKPaint
                     {
-                        Color = tile?.Biome != null ? SKColor.Parse(tile.Biome.Color) : SKColors.White,
+                        Color = !tile.Equals(default(Tile)) && !tile.Biome.Equals(default(Biome)) ? SKColor.Parse(tile.Biome.Color) : SKColors.White,
                         Style = SKPaintStyle.Fill
                     };
                     canvas.DrawRect(rect, paint);
@@ -99,7 +99,7 @@ namespace BiomeVisualizer
                     canvas.DrawRect(rect, gridPaint);
 
                     // Draw trading post
-                    if (tile?.Biome?.TradingPost != null &&
+                    if (!tile.Equals(default(Tile)) && !tile.Biome.Equals(default(Biome)) && !tile.Biome.TradingPost.Equals(default(TradingPost)) &&
                         tile.X == tile.Biome.TradingPost.X &&
                         tile.Y == tile.Biome.TradingPost.Y)
                     {
