@@ -21,6 +21,7 @@ namespace BiomeVisualizer
 
         private Point? startPoint = null;
         private Point? endPoint = null;
+        private List<Point> pathPoints = new List<Point>();
 
         public MainWindow()
         {
@@ -56,6 +57,7 @@ namespace BiomeVisualizer
             biomeMap = new Tile[mapSize * mapSize]; // Reset the biome map
             startPoint = null; // Clear the start point
             endPoint = null; // Clear the end point
+            pathPoints.Clear(); // Clear the path points
             GenerateBiomeMapAsync();
         }
 
@@ -86,7 +88,7 @@ namespace BiomeVisualizer
             int tileY = (int)(adjustedPosition.Y / tileSize);
 
             // Ensure the click is within the bounds of the map
-            if (tileX < 0 || tileX >= mapSize * dpiScale.DpiScaleX || tileY < 0 || tileY >= mapSize * dpiScale.DpiScaleY)
+            if (tileX < 0 || tileX >= mapSize || tileY < 0 || tileY >= mapSize)
             {
                 return;
             }
@@ -101,14 +103,138 @@ namespace BiomeVisualizer
             else if (endPoint == null)
             {
                 endPoint = tileCenter;
+                // Perform A* pathfinding
+                pathPoints = PerformAStarPathfinding(startPoint.Value, endPoint.Value);
             }
             else
             {
                 startPoint = tileCenter;
                 endPoint = null;
+                pathPoints.Clear();
             }
 
             MapCanvas.InvalidateVisual(); // Trigger a redraw to show the points
+        }
+
+        private List<Point> PerformAStarPathfinding(Point start, Point end)
+        {
+            // Convert start and end points to tile coordinates
+            int startX = (int)(start.X / tileSize);
+            int startY = (int)(start.Y / tileSize);
+            int endX = (int)(end.X / tileSize);
+            int endY = (int)(end.Y / tileSize);
+
+            // Initialize the open and closed lists
+            var openList = new List<Tile>();
+            var closedList = new HashSet<Tile>();
+
+            // Add the start tile to the open list
+            var startTile = biomeMap[startY * mapSize + startX];
+            openList.Add(startTile);
+
+            // Initialize the g, h, and f scores
+            var gScores = new Dictionary<Tile, double>();
+            var hScores = new Dictionary<Tile, double>();
+            var fScores = new Dictionary<Tile, double>();
+            gScores[startTile] = 0;
+            hScores[startTile] = GetHeuristic(startTile, endX, endY);
+            fScores[startTile] = hScores[startTile];
+
+            // Initialize the cameFrom dictionary
+            var cameFrom = new Dictionary<Tile, Tile>();
+
+            while (openList.Count > 0)
+            {
+                // Get the tile with the lowest f score
+                var currentTile = openList.OrderBy(t => fScores[t]).First();
+
+                // If the current tile is the end tile, reconstruct the path
+                if (currentTile.X == endX && currentTile.Y == endY)
+                {
+                    return ReconstructPath(cameFrom, currentTile);
+                }
+
+                // Move the current tile from the open list to the closed list
+                openList.Remove(currentTile);
+                closedList.Add(currentTile);
+
+                // Get the neighbors of the current tile
+                var neighbors = GetNeighbors(currentTile);
+
+                foreach (var neighbor in neighbors)
+                {
+                    if (closedList.Contains(neighbor))
+                    {
+                        continue;
+                    }
+
+                    // Calculate the tentative g score
+                    var tentativeGScore = gScores[currentTile] + neighbor.Cost;
+
+                    if (!openList.Contains(neighbor))
+                    {
+                        openList.Add(neighbor);
+                    }
+                    else if (tentativeGScore >= gScores[neighbor])
+                    {
+                        continue;
+                    }
+
+                    // Update the cameFrom, g, h, and f scores
+                    cameFrom[neighbor] = currentTile;
+                    gScores[neighbor] = tentativeGScore;
+                    hScores[neighbor] = GetHeuristic(neighbor, endX, endY);
+                    fScores[neighbor] = gScores[neighbor] + hScores[neighbor];
+                }
+            }
+
+            // Return an empty path if no path is found
+            return new List<Point>();
+        }
+
+        private double GetHeuristic(Tile tile, int endX, int endY)
+        {
+            // Use the Manhattan distance as the heuristic
+            return Math.Abs(tile.X - endX) + Math.Abs(tile.Y - endY);
+        }
+
+        private List<Tile> GetNeighbors(Tile tile)
+        {
+            var neighbors = new List<Tile>();
+
+            // Get the coordinates of the neighbors
+            var neighborCoords = new List<(int, int)>
+                {
+                    (tile.X - 1, tile.Y),
+                    (tile.X + 1, tile.Y),
+                    (tile.X, tile.Y - 1),
+                    (tile.X, tile.Y + 1)
+                };
+
+            foreach (var (x, y) in neighborCoords)
+            {
+                if (x >= 0 && x < mapSize && y >= 0 && y < mapSize)
+                {
+                    neighbors.Add(biomeMap[y * mapSize + x]);
+                }
+            }
+
+            return neighbors;
+        }
+
+        private List<Point> ReconstructPath(Dictionary<Tile, Tile> cameFrom, Tile currentTile)
+        {
+            var path = new List<Point>();
+
+            while (cameFrom.ContainsKey(currentTile))
+            {
+                var tileCenter = new Point(currentTile.X * tileSize + tileSize / 2, currentTile.Y * tileSize + tileSize / 2);
+                path.Add(tileCenter);
+                currentTile = cameFrom[currentTile];
+            }
+
+            path.Reverse();
+            return path;
         }
 
         private void MapCanvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
@@ -174,6 +300,12 @@ namespace BiomeVisualizer
             if (endPoint.HasValue)
             {
                 DrawPoint(canvas, endPoint.Value, SKColors.Blue);
+            }
+
+            // Draw the path points if they exist
+            foreach (var point in pathPoints)
+            {
+                DrawPoint(canvas, point, SKColors.Yellow);
             }
         }
 
