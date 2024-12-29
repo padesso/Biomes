@@ -54,6 +54,8 @@ namespace BiomeVisualizer
         private void RegenerateMapButton_Click(object sender, RoutedEventArgs e)
         {
             biomeMap = new Tile[mapSize * mapSize]; // Reset the biome map
+            startPoint = null; // Clear the start point
+            endPoint = null; // Clear the end point
             GenerateBiomeMapAsync();
         }
 
@@ -89,9 +91,8 @@ namespace BiomeVisualizer
                 return;
             }
 
-            //Find the tile center
-            var tileCenter = new Point(tileX * tileSize + tileSize / 2, 
-                                        tileY * tileSize + tileSize / 2);
+            // Find the tile center
+            var tileCenter = new Point(tileX * tileSize + tileSize / 2, tileY * tileSize + tileSize / 2);
 
             if (startPoint == null)
             {
