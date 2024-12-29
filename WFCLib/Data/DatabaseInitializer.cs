@@ -92,12 +92,13 @@ public static class DatabaseInitializer
     private static void InsertOrUpdateInitialData(SQLiteConnection connection)
     {
         // Insert or update biomes
-        InsertOrUpdateBiome(connection, 1, "Forest", "#228B22", 1.0);
+        InsertOrUpdateBiome(connection, 1, "Forest", "#226622", 1.0);
         InsertOrUpdateBiome(connection, 2, "Desert", "#EDC9AF", 1.5);
         InsertOrUpdateBiome(connection, 3, "Mountain", "#A9A9A9", 2.0);
         InsertOrUpdateBiome(connection, 4, "Swamp", "#556B2F", 1.2);
         InsertOrUpdateBiome(connection, 5, "Tundra", "#ADD8E6", 1.8);
         InsertOrUpdateBiome(connection, 6, "Water", "#1E90FF", 1.0);
+        InsertOrUpdateBiome(connection, 7, "Grassland", "#228B22", 1.0);
 
         // Insert or update commodities
         InsertOrUpdateCommodity(connection, 1, "Wood");
@@ -106,6 +107,7 @@ public static class DatabaseInitializer
         InsertOrUpdateCommodity(connection, 4, "Herbs");
         InsertOrUpdateCommodity(connection, 5, "Ice");
         InsertOrUpdateCommodity(connection, 6, "Fish");
+        InsertOrUpdateCommodity(connection, 7, "Livestock");
 
         // Insert or update biome commodities
         InsertOrUpdateBiomeCommodity(connection, 1, 1); // Forest -> Wood
@@ -114,6 +116,7 @@ public static class DatabaseInitializer
         InsertOrUpdateBiomeCommodity(connection, 4, 4); // Swamp -> Herbs
         InsertOrUpdateBiomeCommodity(connection, 5, 5); // Tundra -> Ice
         InsertOrUpdateBiomeCommodity(connection, 6, 6); // Water -> Fish
+        InsertOrUpdateBiomeCommodity(connection, 7, 7); // Water -> Fish
 
         // Insert or update trading posts
         InsertOrUpdateTradingPost(connection, 1, 1, "Forest Trading Post", 0, 0);
@@ -122,6 +125,7 @@ public static class DatabaseInitializer
         InsertOrUpdateTradingPost(connection, 4, 4, "Swamp Trading Post", 3, 3);
         InsertOrUpdateTradingPost(connection, 5, 5, "Tundra Trading Post", 4, 4);
         InsertOrUpdateTradingPost(connection, 6, 6, "Water Trading Post", 5, 5);
+        InsertOrUpdateTradingPost(connection, 7, 7, "Grassland Trading Post", 6, 6);
 
         // Insert or update adjacency rules
         InsertOrUpdateBiomeAdjacency(connection, 1, 2, false); // Forest <-> Desert
@@ -129,20 +133,27 @@ public static class DatabaseInitializer
         InsertOrUpdateBiomeAdjacency(connection, 1, 4, true); // Forest <-> Swamp
         InsertOrUpdateBiomeAdjacency(connection, 1, 5, false); // Forest <-> Tundra
         InsertOrUpdateBiomeAdjacency(connection, 1, 6, true); // Forest <-> Water
+        InsertOrUpdateBiomeAdjacency(connection, 1, 7, true); // Forest <-> Grassland
 
         InsertOrUpdateBiomeAdjacency(connection, 2, 3, true); // Desert <-> Mountain
         InsertOrUpdateBiomeAdjacency(connection, 2, 4, false); // Desert <-> Swamp
         InsertOrUpdateBiomeAdjacency(connection, 2, 5, false); // Desert <-> Tundra
         InsertOrUpdateBiomeAdjacency(connection, 2, 6, false); // Desert <-> Water
+        InsertOrUpdateBiomeAdjacency(connection, 2, 7, true); // Desert <-> Grassland
 
         InsertOrUpdateBiomeAdjacency(connection, 3, 4, false); // Mountain <-> Swamp
         InsertOrUpdateBiomeAdjacency(connection, 3, 5, true); // Mountain <-> Tundra
         InsertOrUpdateBiomeAdjacency(connection, 3, 6, false); // Mountain <-> Water
+        InsertOrUpdateBiomeAdjacency(connection, 3, 7, true); // Mountain <-> Grassland
 
         InsertOrUpdateBiomeAdjacency(connection, 4, 5, false); // Swamp <-> Tundra
         InsertOrUpdateBiomeAdjacency(connection, 4, 6, true); // Swamp <-> Water
+        InsertOrUpdateBiomeAdjacency(connection, 4, 7, true); // Swamp <-> Grassland
 
         InsertOrUpdateBiomeAdjacency(connection, 5, 6, true); // Tundra <-> Water
+        InsertOrUpdateBiomeAdjacency(connection, 5, 7, true); // Tundra <-> Grassland
+
+        InsertOrUpdateBiomeAdjacency(connection, 6, 7, true); // Water <-> Grassland
     }
 
     private static void InsertOrUpdateBiome(SQLiteConnection connection, int id, string name, string color, double baseCost)
