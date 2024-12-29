@@ -1,9 +1,11 @@
 ﻿using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using SkiaSharp.Views.WPF;
 using WFCLib;
 using WFCLib.Models;
 
@@ -14,14 +16,15 @@ namespace BiomeVisualizer
         private const string DatabasePath = "biomes.db";
 
         private Tile[] biomeMap;
-        private int tileSize = 20;
-        
         private int mapSize;
+        private double tileSize = 20;
+
+        private Point? startPoint = null;
+        private Point? endPoint = null;
 
         public MainWindow()
         {
             InitializeComponent();
-
             DatabaseInitializer.InitializeDatabase(DatabasePath);
 
             // Generate the biome map
@@ -64,6 +67,49 @@ namespace BiomeVisualizer
             LoadingSpinner.Visibility = Visibility.Collapsed;
         }
 
+        private void MapCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var position = e.GetPosition(MapCanvas);
+
+            // Get the DPI scaling factor
+            var dpiScale = VisualTreeHelper.GetDpi(MapCanvas);
+            var scaleX = dpiScale.DpiScaleX;
+            var scaleY = dpiScale.DpiScaleY;
+
+            // Adjust the position based on the DPI scaling factor
+            var adjustedPosition = new Point(position.X * scaleX, position.Y * scaleY);
+
+            // Calculate the center of the tile
+            int tileX = (int)(adjustedPosition.X / tileSize);
+            int tileY = (int)(adjustedPosition.Y / tileSize);
+
+            // Ensure the click is within the bounds of the map
+            if (tileX < 0 || tileX >= mapSize * dpiScale.DpiScaleX || tileY < 0 || tileY >= mapSize * dpiScale.DpiScaleY)
+            {
+                return;
+            }
+
+            //Find the tile center
+            var tileCenter = new Point(tileX * tileSize + tileSize / 2, 
+                                        tileY * tileSize + tileSize / 2);
+
+            if (startPoint == null)
+            {
+                startPoint = tileCenter;
+            }
+            else if (endPoint == null)
+            {
+                endPoint = tileCenter;
+            }
+            else
+            {
+                startPoint = tileCenter;
+                endPoint = null;
+            }
+
+            MapCanvas.InvalidateVisual(); // Trigger a redraw to show the points
+        }
+
         private void MapCanvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             var canvas = e.Surface.Canvas;
@@ -74,6 +120,9 @@ namespace BiomeVisualizer
                 return;
             }
 
+            // Calculate the actual tile size based on the MapCanvas size and the number of tiles
+            tileSize = Math.Min(e.Info.Width / (float)mapSize, e.Info.Height / (float)mapSize);
+
             for (int y = 0; y < mapSize; y++)
             {
                 for (int x = 0; x < mapSize; x++)
@@ -81,7 +130,7 @@ namespace BiomeVisualizer
                     var tile = biomeMap[y * mapSize + x];
 
                     // Draw biome tile
-                    var rect = new SKRect(x * tileSize, y * tileSize, (x + 1) * tileSize, (y + 1) * tileSize);
+                    var rect = new SKRect(x * (float)tileSize, y * (float)tileSize, (x + 1) * (float)tileSize, (y + 1) * (float)tileSize);
                     var paint = new SKPaint
                     {
                         Color = !tile.Equals(default(Tile)) && !tile.Biome.Equals(default(Biome)) ? SKColor.Parse(tile.Biome.Color) : SKColors.White,
@@ -103,19 +152,38 @@ namespace BiomeVisualizer
                         tile.X == tile.Biome.TradingPost.X &&
                         tile.Y == tile.Biome.TradingPost.Y)
                     {
-                        var centerX = x * tileSize + tileSize / 2;
-                        var centerY = y * tileSize + tileSize / 2;
+                        var centerX = x * (float)tileSize + (float)tileSize / 2;
+                        var centerY = y * (float)tileSize + (float)tileSize / 2;
                         var postPaint = new SKPaint
                         {
                             Color = SKColors.Black,
                             Style = SKPaintStyle.Fill
                         };
-                        canvas.DrawCircle(centerX, centerY, tileSize / 4, postPaint);
+                        canvas.DrawCircle(centerX, centerY, (float)tileSize / 4, postPaint);
                     }
                 }
             }
+
+            // Draw the start and end points if they exist
+            if (startPoint.HasValue)
+            {
+                DrawPoint(canvas, startPoint.Value, SKColors.Red);
+            }
+
+            if (endPoint.HasValue)
+            {
+                DrawPoint(canvas, endPoint.Value, SKColors.Blue);
+            }
         }
 
-
+        private void DrawPoint(SKCanvas canvas, Point point, SKColor color)
+        {
+            using (var paint = new SKPaint())
+            {
+                paint.Color = color;
+                paint.IsAntialias = true;
+                canvas.DrawCircle((float)point.X, (float)point.Y, 5, paint);
+            }
+        }
     }
 }

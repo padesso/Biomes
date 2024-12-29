@@ -17,7 +17,7 @@
         <Button Content="Regenerate Map" Click="RegenerateMapButton_Click" Grid.Row="0" Grid.ColumnSpan="2" Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
         <!-- Map Canvas -->
-        <skia:SKElement x:Name="MapCanvas" PaintSurface="MapCanvas_PaintSurface" Grid.Row="1" Grid.Column="0" />
+        <skia:SKElement x:Name="MapCanvas" PaintSurface="MapCanvas_PaintSurface" Grid.Row="1" Grid.Column="0" MouseLeftButtonDown="MapCanvas_MouseLeftButtonDown" />
 
         <!-- Legend -->
         <StackPanel Grid.Row="1" Grid.Column="1" Margin="10">
