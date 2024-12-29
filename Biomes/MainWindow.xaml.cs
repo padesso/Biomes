@@ -14,7 +14,7 @@ namespace BiomeVisualizer
         private const string DatabasePath = "biomes.db";
 
         private Tile[] biomeMap;
-        private int tileSize = 15;
+        private int tileSize = 20;
         
         private int mapSize;
 
