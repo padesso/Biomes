@@ -92,12 +92,12 @@ public static class DatabaseInitializer
     private static void InsertOrUpdateInitialData(SQLiteConnection connection)
     {
         // Insert or update biomes
-        InsertOrUpdateBiome(connection, 1, "Forest", "#226622", 1.0);
-        InsertOrUpdateBiome(connection, 2, "Desert", "#EDC9AF", 1.5);
-        InsertOrUpdateBiome(connection, 3, "Mountain", "#A9A9A9", 2.0);
-        InsertOrUpdateBiome(connection, 4, "Swamp", "#556B2F", 1.2);
-        InsertOrUpdateBiome(connection, 5, "Tundra", "#ADD8E6", 1.8);
-        InsertOrUpdateBiome(connection, 6, "Water", "#1E90FF", 1.0);
+        InsertOrUpdateBiome(connection, 1, "Forest", "#226622", 1.5);
+        InsertOrUpdateBiome(connection, 2, "Desert", "#EDC9AF", 1.25);
+        InsertOrUpdateBiome(connection, 3, "Mountain", "#A9A9A9", 10.0);
+        InsertOrUpdateBiome(connection, 4, "Swamp", "#556B2F", 1.75);
+        InsertOrUpdateBiome(connection, 5, "Tundra", "#ADD8E6", 1.4);
+        InsertOrUpdateBiome(connection, 6, "Water", "#1E90FF", 2.0);
         InsertOrUpdateBiome(connection, 7, "Grassland", "#228B22", 1.0);
 
         // Insert or update commodities
